@@ -19,6 +19,8 @@ from .redis_utils import RedisUtils
 from .frp_utils import FrpUtils
 from .models import DynamicDockerChallenge, DynamicValueDockerChallenge
 
+from .translation import *
+
 
 def load(app):
     # upgrade()
@@ -89,10 +91,10 @@ def load(app):
         redis_util = RedisUtils(app=app, user_id=user_id)
 
         if not redis_util.acquire_lock():
-            return json.dumps({'success': False, 'msg': 'Request Too Fast!'})
+            return json.dumps({'success': False, 'msg': REQUEST_TOO_FAST})
 
         if ControlUtil.frequency_limit():
-            return json.dumps({'success': False, 'msg': 'Frequency limit, You should wait at least 1 min.'})
+            return json.dumps({'success': False, 'msg': REQUEST_INTERVAL})
 
         ControlUtil.remove_container(app, user_id)
         challenge_id = request.args.get('challenge_id')
@@ -101,7 +103,7 @@ def load(app):
         configs = DBUtils.get_all_configs()
         current_count = DBUtils.get_all_alive_container_count()
         if int(configs.get("docker_max_container_count")) <= int(current_count):
-            return json.dumps({'success': False, 'msg': 'Max container count exceed.'})
+            return json.dumps({'success': False, 'msg': TOO_MANY_INSTANCES})
 
         dynamic_docker_challenge = DynamicDockerChallenge.query \
             .filter(DynamicDockerChallenge.id == challenge_id) \
@@ -157,17 +159,17 @@ def load(app):
         user_id = current_user.get_current_user().id
         redis_util = RedisUtils(app=app, user_id=user_id)
         if not redis_util.acquire_lock():
-            return json.dumps({'success': False, 'msg': 'Request Too Fast!'})
+            return json.dumps({'success': False, 'msg': REQUEST_TOO_FAST})
 
         if ControlUtil.frequency_limit():
-            return json.dumps({'success': False, 'msg': 'Frequency limit, You should wait at least 1 min.'})
+            return json.dumps({'success': False, 'msg': REQUEST_INTERVAL})
 
         if ControlUtil.remove_container(app, user_id):
             redis_util.release_lock()
 
             return json.dumps({'success': True})
         else:
-            return json.dumps({'success': False, 'msg': 'Failed when destroy instance, please contact admin!'})
+            return json.dumps({'success': False, 'msg': DESTROY_FAILED})
 
     @page_blueprint.route('/container', methods=['PATCH'])
     @authed_only
@@ -175,10 +177,10 @@ def load(app):
         user_id = current_user.get_current_user().id
         redis_util = RedisUtils(app=app, user_id=user_id)
         if not redis_util.acquire_lock():
-            return json.dumps({'success': False, 'msg': 'Request Too Fast!'})
+            return json.dumps({'success': False, 'msg': REQUEST_TOO_FAST})
 
         if ControlUtil.frequency_limit():
-            return json.dumps({'success': False, 'msg': 'Frequency limit, You should wait at least 1 min.'})
+            return json.dumps({'success': False, 'msg': REQUEST_INTERVAL})
 
         configs = DBUtils.get_all_configs()
         challenge_id = request.args.get('challenge_id')
@@ -186,9 +188,9 @@ def load(app):
         docker_max_renew_count = int(configs.get("docker_max_renew_count"))
         container = ControlUtil.get_container(user_id)
         if container is None:
-            return json.dumps({'success': False, 'msg': 'Instance not found.'})
+            return json.dumps({'success': False, 'msg': INSTANCE_NOT_FOUND})
         if container.renew_count >= docker_max_renew_count:
-            return json.dumps({'success': False, 'msg': 'Max renewal times exceed.'})
+            return json.dumps({'success': False, 'msg': RENEW_EXCEEDED})
         ControlUtil.renew_container(user_id=user_id, challenge_id=challenge_id)
         redis_util.release_lock()
         return json.dumps({'success': True})

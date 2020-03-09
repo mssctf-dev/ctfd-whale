@@ -36,36 +36,32 @@ function loadInfo() {
         }
         return response.json();
     }).then(function(response) {
+        var info_tpl =
+            '<div class="card" style="width: 100%;">' +
+            '<div class="card-body">' +
+            '<h5 class="card-title">题目实例</h5>' +
+            '%content' +
+            '</div></div>';
         if (response.remaining_time === undefined) {
-            $('#whale-panel').html('<div class="card" style="width: 100%;">' +
-                '<div class="card-body">' +
-                '<h5 class="card-title">Instance Info</h5>' +
-                '<button type="button" class="btn btn-primary card-link" id="whale-button-boot" onclick="CTFd._internal.challenge.boot()">Launch an instance</button>' +
-                '</div>' +
-                '</div>');
+            $('#whale-panel').html(info_tpl.replace('%content',
+                '<button type="button" class="btn btn-primary card-link" id="whale-button-boot" onclick="CTFd._internal.challenge.boot()">部署题目环境</button>'
+            ));
         } else {
+            var activated_tpl = info_tpl.replace('%content',
+                '<h6 class="card-subtitle mb-2 text-muted" id="whale-challenge-count-down">剩余时间: ' + response.remaining_time + 's</h6>' +
+                '<h6 class="card-subtitle mb-2 text-muted">Lan Domain: ' + response.lan_domain + '</h6>' +
+                "%chall_link" +
+                '<button type="button" class="btn btn-danger card-link" id="whale-button-destroy" onclick="CTFd._internal.challenge.destroy()">销毁环境</button>' +
+                '<button type="button" class="btn btn-success card-link" id="whale-button-renew" onclick="CTFd._internal.challenge.renew()">延长时限</button>'
+            );
             if (response.type === 'http') {
-                $('#whale-panel').html('<div class="card" style="width: 100%;">' +
-                    '<div class="card-body">' +
-                    '<h5 class="card-title">Instance Info</h5>' +
-                    '<h6 class="card-subtitle mb-2 text-muted" id="whale-challenge-count-down">Remaining Time: ' + response.remaining_time + 's</h6>' +
-                    '<h6 class="card-subtitle mb-2 text-muted">Lan Domain: ' + response.lan_domain + '</h6>' +
-                    '<p class="card-text">http://' + response.domain + '</p>' +
-                    '<button type="button" class="btn btn-danger card-link" id="whale-button-destroy" onclick="CTFd._internal.challenge.destroy()">Destroy this instance</button>' +
-                    '<button type="button" class="btn btn-success card-link" id="whale-button-renew" onclick="CTFd._internal.challenge.renew()">Renew this instance</button>' +
-                    '</div>' +
-                    '</div>');
+                $('#whale-panel').html(activated_tpl.replace("%chall_link",
+                    '<p class="card-text">http://' + response.domain + '</p>'
+                ));
             } else {
-                $('#whale-panel').html('<div class="card" style="width: 100%;">' +
-                    '<div class="card-body">' +
-                    '<h5 class="card-title">Instance Info</h5>' +
-                    '<h6 class="card-subtitle mb-2 text-muted" id="whale-challenge-count-down">Remaining Time: ' + response.remaining_time + 's</h6>' +
-                    '<h6 class="card-subtitle mb-2 text-muted">Lan Domain: ' + response.lan_domain + '</h6>' +
-                    '<p class="card-text">' + response.ip + ':' + response.port + '</p>' +
-                    '<button type="button" class="btn btn-danger card-link" id="whale-button-destroy" onclick="CTFd._internal.challenge.destroy()">Destroy this instance</button>' +
-                    '<button type="button" class="btn btn-success card-link" id="whale-button-renew" onclick="CTFd._internal.challenge.renew()">Renew this instance</button>' +
-                    '</div>' +
-                    '</div>');
+                $('#whale-panel').html(activated_tpl.replace("%chall_link",
+                    '<p class="card-text">' + response.ip + ':' + response.port + '</p>'
+                ));
             }
 
             if (window.t !== undefined) {
@@ -78,7 +74,7 @@ function loadInfo() {
                 if (c === undefined) return;
                 const origin = c.innerHTML;
                 const second = parseInt(origin.split(": ")[1].split('s')[0]) - 1;
-                c.innerHTML = 'Remaining Time: ' + second + 's';
+                c.innerHTML = '剩余时间: ' + second + 's';
                 if (second < 0) {
                     loadInfo();
                 }
@@ -120,15 +116,15 @@ CTFd._internal.challenge.destroy = function() {
         if (response.success) {
             loadInfo();
             CTFd.ui.ezq.ezAlert({
-                title: "Success",
-                body: "Your instance has been destroyed!",
+                title: "成功",
+                body: "已销毁题目环境",
                 button: "OK"
             });
         } else {
-            $('#whale-button-destroy')[0].innerHTML = "Destroy this instance";
+            $('#whale-button-destroy')[0].innerHTML = "销毁环境";
             $('#whale-button-destroy')[0].disabled = false;
             CTFd.ui.ezq.ezAlert({
-                title: "Fail",
+                title: "失败",
                 body: response.msg,
                 button: "OK"
             });
@@ -167,15 +163,15 @@ CTFd._internal.challenge.renew = function() {
         if (response.success) {
             loadInfo();
             CTFd.ui.ezq.ezAlert({
-                title: "Success",
-                body: "Your instance has been renewed!",
+                title: "成功",
+                body: "时限已延长",
                 button: "OK"
             });
         } else {
-            $('#whale-button-renew')[0].innerHTML = "Renew this instance";
+            $('#whale-button-renew')[0].innerHTML = "延长时限";
             $('#whale-button-renew')[0].disabled = false;
             CTFd.ui.ezq.ezAlert({
-                title: "Fail",
+                title: "失败",
                 body: response.msg,
                 button: "OK"
             });
@@ -214,15 +210,15 @@ CTFd._internal.challenge.boot = function() {
         if (response.success) {
             loadInfo();
             CTFd.ui.ezq.ezAlert({
-                title: "Success",
-                body: "Your instance has been deployed!",
+                title: "成功",
+                body: "题目环境已部署",
                 button: "OK"
             });
         } else {
-            $('#whale-button-boot')[0].innerHTML = "Launch an instance";
+            $('#whale-button-boot')[0].innerHTML = "部署题目环境";
             $('#whale-button-boot')[0].disabled = false;
             CTFd.ui.ezq.ezAlert({
-                title: "Fail",
+                title: "失败",
                 body: response.msg,
                 button: "OK"
             });

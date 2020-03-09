@@ -1,0 +1,12 @@
+REQUEST_TOO_FAST = '请求过于频繁，请稍后再试'
+# 'Request Too Fast!'
+REQUEST_INTERVAL = '请求的间隔不能小于一分钟。'
+# 'Frequency limit, You should wait at least 1 min.'
+TOO_MANY_INSTANCES = '运行的题目环境过多，请稍后再试。'
+
+DESTROY_FAILED = '销毁失败，请联系网站运维'
+# 'Failed when destroy instance, please contact admin!'
+INSTANCE_NOT_FOUND = '未找到题目环境'
+# 'Instance not found.'
+RENEW_EXCEEDED = '超出延时次数限制'
+# 'Max renewal times exceed.'
