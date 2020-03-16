@@ -9,7 +9,10 @@ from datetime import datetime
 from flask import Blueprint, render_template, request
 from flask_apscheduler import APScheduler
 
-from CTFd.plugins import register_plugin_assets_directory
+from CTFd.plugins import (
+        register_plugin_assets_directory,
+        register_admin_plugin_menu_bar,
+)
 from CTFd.plugins.challenges import CHALLENGE_CLASSES
 from CTFd.utils import user as current_user
 from CTFd.utils.decorators import admins_only, authed_only
@@ -28,6 +31,9 @@ def load(app):
     CHALLENGE_CLASSES["dynamic_docker"] = DynamicValueDockerChallenge
     register_plugin_assets_directory(
         app, base_path="/plugins/ctfd-whale/assets/"
+    )
+    register_admin_plugin_menu_bar(
+        'Whale', '/plugins/ctfd-whale/admin/settings'
     )
 
     page_blueprint = Blueprint(
