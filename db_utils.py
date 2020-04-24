@@ -49,21 +49,13 @@ class DBUtils:
     def get_current_containers(user_id):
         q = db.session.query(WhaleContainer)
         q = q.filter(WhaleContainer.user_id == user_id)
-        records = q.all()
-        if len(records) == 0:
-            return None
-
-        return records[0]
+        return q.first()
 
     @staticmethod
     def get_container_by_port(port):
         q = db.session.query(WhaleContainer)
         q = q.filter(WhaleContainer.port == port)
-        records = q.all()
-        if len(records) == 0:
-            return None
-
-        return records[0]
+        return q.first()
 
     @staticmethod
     def remove_current_container(user_id):

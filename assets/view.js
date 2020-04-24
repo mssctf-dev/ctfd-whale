@@ -14,7 +14,7 @@ if ($ === undefined) $ = CTFd.lib.$;
 
 function loadInfo() {
     var challenge_id = parseInt($('#challenge-id').val());
-    var url = "/plugins/ctfd-whale/container?challenge_id=" + challenge_id;
+    var url = "/api/v1/container?challenge_id=" + challenge_id;
 
     var params = {};
 
@@ -87,7 +87,7 @@ function loadInfo() {
 
 CTFd._internal.challenge.destroy = function() {
     var challenge_id = parseInt($('#challenge-id').val());
-    var url = "/plugins/ctfd-whale/container?challenge_id=" + challenge_id;
+    var url = "/api/v1/container?challenge_id=" + challenge_id;
 
     $('#whale-button-destroy')[0].innerHTML = "Waiting...";
     $('#whale-button-destroy')[0].disabled = true;
@@ -134,7 +134,7 @@ CTFd._internal.challenge.destroy = function() {
 
 CTFd._internal.challenge.renew = function() {
     var challenge_id = parseInt($('#challenge-id').val());
-    var url = "/plugins/ctfd-whale/container?challenge_id=" + challenge_id;
+    var url = "/api/v1/container?challenge_id=" + challenge_id;
 
     $('#whale-button-renew')[0].innerHTML = "Waiting...";
     $('#whale-button-renew')[0].disabled = true;
@@ -181,7 +181,7 @@ CTFd._internal.challenge.renew = function() {
 
 CTFd._internal.challenge.boot = function() {
     var challenge_id = parseInt($('#challenge-id').val());
-    var url = "/plugins/ctfd-whale/container?challenge_id=" + challenge_id;
+    var url = "/api/v1/container?challenge_id=" + challenge_id;
 
     $('#whale-button-boot')[0].innerHTML = "Waiting...";
     $('#whale-button-boot')[0].disabled = true;

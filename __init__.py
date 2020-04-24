@@ -1,6 +1,7 @@
 from __future__ import division  # Use floating point for math calculations
 
 import fcntl
+import hashlib
 import json
 import random
 import uuid
@@ -90,7 +91,7 @@ def load(app):
         DBUtils.renew_current_container(user_id=user_id, challenge_id=challenge_id)
         return json.dumps({'success': True})
 
-    @page_blueprint.route('/container', methods=['POST'])
+    @app.route('/api/v1/container', methods=['POST'])
     @authed_only
     def add_container():
         user_id = current_user.get_current_user().id
@@ -124,7 +125,7 @@ def load(app):
         redis_util.release_lock()
         return json.dumps({'success': True})
 
-    @page_blueprint.route('/container', methods=['GET'])
+    @app.route('/api/v1/container', methods=['GET'])
     @authed_only
     def list_container():
         user_id = current_user.get_current_user().id
@@ -136,19 +137,21 @@ def load(app):
         timeout = int(configs.get("docker_timeout", "3600"))
         if data is not None:
             if int(data.challenge_id) != int(challenge_id):
-                return json.dumps({})
+                return json.dumps({'success': False})
             dynamic_docker_challenge = DynamicDockerChallenge.query \
                 .filter(DynamicDockerChallenge.id == data.challenge_id) \
                 .first_or_404()
-            lan_domain = str(user_id) + "-" + data.uuid
+            lan_domain = hashlib.md5(
+                (str(user_id) + "-" + data.uuid).encode()
+            ).hexdigest()
             if dynamic_docker_challenge.redirect_type == "http":
                 if int(configs.get('frp_http_port', "80")) == 80:
-                    return json.dumps({'success': True, 'type': 'http', 'domain': data.uuid + domain,
+                    return json.dumps({'success': True, 'type': 'http', 'domain': lan_domain + domain,
                                        'remaining_time': timeout - (datetime.now() - data.start_time).seconds,
                                        'lan_domain': lan_domain})
                 else:
                     return json.dumps({'success': True, 'type': 'http',
-                                       'domain': data.uuid + domain + ":" + configs.get('frp_http_port', "80"),
+                                       'domain': lan_domain + domain + ":" + configs.get('frp_http_port', "80"),
                                        'remaining_time': timeout - (datetime.now() - data.start_time).seconds,
                                        'lan_domain': lan_domain})
             else:
@@ -159,7 +162,7 @@ def load(app):
         else:
             return json.dumps({'success': True})
 
-    @page_blueprint.route('/container', methods=['DELETE'])
+    @app.route('/api/v1/container', methods=['DELETE'])
     @authed_only
     def remove_container():
         user_id = current_user.get_current_user().id
@@ -177,7 +180,7 @@ def load(app):
         else:
             return json.dumps({'success': False, 'msg': DESTROY_FAILED})
 
-    @page_blueprint.route('/container', methods=['PATCH'])
+    @app.route('/api/v1/container', methods=['PATCH'])
     @authed_only
     def renew_container():
         user_id = current_user.get_current_user().id

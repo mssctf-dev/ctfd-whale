@@ -1,3 +1,4 @@
+import hashlib
 import requests
 
 from .db_utils import DBUtils
@@ -8,7 +9,7 @@ class FrpUtils:
     @staticmethod
     def update_frp_redirect():
         configs = DBUtils.get_all_configs()
-        domain = configs.get('frp_http_domain_suffix', "")
+        domain_suffix = configs.get('frp_http_domain_suffix', "")
 
         containers = DBUtils.get_all_alive_container()
 
@@ -38,17 +39,20 @@ class FrpUtils:
             dynamic_docker_challenge = DynamicDockerChallenge.query \
                 .filter(DynamicDockerChallenge.id == c.challenge_id) \
                 .first_or_404()
-
+            domain = hashlib.md5(
+                (str(c.user_id) + '-' + c.uuid).encode()
+            ).hexdigest()
             if dynamic_docker_challenge.redirect_type == 'http':
                 output += http_template % (
                     str(c.user_id) + '-' + c.uuid, str(c.user_id) + '-' + c.uuid,
-                    dynamic_docker_challenge.redirect_port, c.uuid + domain)
+                    dynamic_docker_challenge.redirect_port, domain + domain_suffix)
             else:
                 output += direct_template % (
-                    str(c.user_id) + '-' + c.uuid, str(c.user_id) + '-' + c.uuid,
+                    domain, domain,
                     dynamic_docker_challenge.redirect_port, c.port,
-                    str(c.user_id) + '-' + c.uuid, str(c.user_id) + '-' + c.uuid,
-                    dynamic_docker_challenge.redirect_port, c.port)
+                    domain, domain,
+                    dynamic_docker_challenge.redirect_port, c.port
+                )
 
         requests.put("http://" + configs.get("frp_api_ip") + ":" + configs.get("frp_api_port") + "/api/config", output,
                      timeout=5)

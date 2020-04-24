@@ -1,11 +1,12 @@
 import time
 
-from CTFd.models import Challenges, Users
+from CTFd.models import Users
 from .db_utils import DBUtils
 from .docker_utils import DockerUtils
 from sqlalchemy.sql import and_
 from flask import session
 from .redis_utils import RedisUtils
+from .models import DynamicDockerChallenge
 
 class ControlUtil:
     @staticmethod
@@ -39,13 +40,16 @@ class ControlUtil:
         user = Users.query.filter_by(id=user_id).first()
 
         if user.type == "admin":
-            Challenges.query.filter(
-                Challenges.id == challenge_id
+            DynamicDockerChallenge.query.filter(
+                DynamicDockerChallenge.id == challenge_id
             ).first_or_404()
         else:
-            Challenges.query.filter(
-                Challenges.id == challenge_id,
-                and_(Challenges.state != "hidden", Challenges.state != "locked"),
+            DynamicDockerChallenge.query.filter(
+                DynamicDockerChallenge.id == challenge_id,
+                and_(
+                    DynamicDockerChallenge.state != "hidden", 
+                    DynamicDockerChallenge.state != "locked"
+                ),
             ).first_or_404()
 
     @staticmethod
